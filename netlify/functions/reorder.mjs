@@ -1,5 +1,5 @@
 import { isAdmin, json } from "../lib/auth.mjs";
-import { getManifest, saveManifest } from "../lib/store.mjs";
+import { getManifest, saveAssignmentMeta } from "../lib/store.mjs";
 
 export default async (req) => {
   if (!(await isAdmin(req))) return json({ error: "Unauthorized" }, 401);
@@ -18,9 +18,14 @@ export default async (req) => {
     byId.delete(id);
   }
   for (const item of byId.values()) reordered.push(item);
-  reordered.forEach((item, index) => { item.order = index; item.updatedAt = new Date().toISOString(); });
-  manifest.assignments = reordered;
-  await saveManifest(manifest);
+
+  const now = new Date().toISOString();
+  reordered.forEach((item, index) => {
+    item.order = index;
+    item.updatedAt = now;
+  });
+  await Promise.all(reordered.map(saveAssignmentMeta));
+
   return json({ ok: true, assignments: reordered });
 };
 

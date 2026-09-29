@@ -1,5 +1,5 @@
 import { isAdmin, json } from "../lib/auth.mjs";
-import { getManifest, saveManifest } from "../lib/store.mjs";
+import { getManifest, saveAssignmentMeta } from "../lib/store.mjs";
 
 export default async (req) => {
   if (!(await isAdmin(req))) return json({ error: "Unauthorized" }, 401);
@@ -18,7 +18,7 @@ export default async (req) => {
   if (typeof body.title === "string") item.title = body.title.trim().slice(0, 120) || item.title;
   if (typeof body.description === "string") item.description = body.description.trim().slice(0, 300);
   item.updatedAt = new Date().toISOString();
-  await saveManifest(manifest);
+  await saveAssignmentMeta(item);
   return json({ ok: true, assignment: item });
 };
 

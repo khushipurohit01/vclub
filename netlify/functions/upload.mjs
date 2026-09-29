@@ -1,5 +1,5 @@
 import { isAdmin, json } from "../lib/auth.mjs";
-import { getManifest, saveManifest, store } from "../lib/store.mjs";
+import { getManifest, saveAssignmentMeta, store } from "../lib/store.mjs";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -30,7 +30,6 @@ export default async (req) => {
 
   const manifest = await getManifest();
   const id = `${slugify(title)}-${crypto.randomUUID().slice(0, 8)}`;
-  const order = manifest.assignments.length;
   const item = {
     id,
     title,
@@ -38,20 +37,20 @@ export default async (req) => {
     originalName: file.name,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    order
+    order: manifest.assignments.length
   };
 
   const html = await file.text();
   await store.set(`assignments/${id}.html`, html, {
     metadata: { contentType: "text/html; charset=utf-8", title }
   });
-  manifest.assignments.push(item);
   try {
-    await saveManifest(manifest);
+    await saveAssignmentMeta(item);
   } catch (error) {
     await store.delete(`assignments/${id}.html`).catch(() => {});
     throw error;
   }
+
   return json({ ok: true, assignment: item });
 };
 
