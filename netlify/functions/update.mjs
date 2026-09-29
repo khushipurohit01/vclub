@@ -7,6 +7,10 @@ export default async (req) => {
   let body;
   try { body = await req.json(); } catch { return json({ error: "Invalid request." }, 400); }
 
+  if (typeof body.id !== "string" || !/^[a-z0-9-]+$/.test(body.id)) return json({ error: "Invalid assignment id." }, 400);
+  if (body.title !== undefined && typeof body.title !== "string") return json({ error: "Invalid title." }, 400);
+  if (body.description !== undefined && typeof body.description !== "string") return json({ error: "Invalid description." }, 400);
+
   const manifest = await getManifest();
   const item = manifest.assignments.find(a => a.id === body.id);
   if (!item) return json({ error: "Assignment not found." }, 404);

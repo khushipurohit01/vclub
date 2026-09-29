@@ -1,6 +1,7 @@
 import { getManifest, store } from "../lib/store.mjs";
 
 export default async (req) => {
+  if (req.method !== "GET") return new Response("Method not allowed", { status: 405 });
   const id = new URL(req.url).searchParams.get("id");
   if (!id || !/^[a-z0-9-]+$/.test(id)) return new Response("Not found", { status: 404 });
   const manifest = await getManifest();

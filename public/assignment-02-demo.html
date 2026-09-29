@@ -366,6 +366,10 @@ button:hover{border-color:var(--rust);color:var(--rust)}
     <h2>NOW CHANGE<br><span class="italic">THE FEELING.</span></h2>
     <p class="lede">Choose any three moods below — or create your own mood if you can explain the choice.</p>
   </div>
+  <div class="box" style="padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:16px">
+    <div class="smallcaps" style="white-space:nowrap">Example</div>
+    <div style="color:var(--muted);font-size:13px;line-height:1.35"><strong style="color:var(--ink)">Premium:</strong> navy + gold + warm cream creates a controlled, sophisticated feel. Use the palette as a direction, not a template.</div>
+  </div>
   <div class="palette-grid">
     <div class="mood">
       <div class="smallcaps">ENERGETIC</div><h3>Bold & high contrast</h3><p>Bright, confident, attention-grabbing.</p>
@@ -494,7 +498,6 @@ button:hover{border-color:var(--rust);color:var(--rust)}
     <div class="submit-row"><div class="n">04</div><strong>MOOD 02</strong><span>Second colour version</span></div>
     <div class="submit-row"><div class="n">05</div><strong>MOOD 03</strong><span>Third colour version</span></div>
     <div class="submit-row"><div class="n">06</div><strong>PALETTE SHEET</strong><span>All palettes + colour swatches + HEX codes</span></div>
-    <div class="submit-row"><div class="n">07</div><strong>PSD</strong><span>Properly organised Photoshop file</span></div>
   </div>
   <div class="callout">Keep your file clean. Keep your layers organised. Make it easy for someone else to understand your work.</div>
   <div class="footer-mark">VClub.assignment02.</div>
@@ -628,8 +631,23 @@ button:hover{border-color:var(--rust);color:var(--rust)}
 
   document.getElementById('next').onclick=next;
   document.getElementById('prev').onclick=prev;
-  document.getElementById('contents').onclick=()=>overlay.classList.add('open');
+  function showContents(){
+    toc.innerHTML='';
+    slides.forEach((s,i)=>{
+      const a=document.createElement('a');
+      a.href='#';
+      a.innerHTML='<span class="n">'+String(i+1).padStart(2,'0')+'</span><span>'+s.dataset.title+'</span>';
+      a.onclick=(e)=>{e.preventDefault();overlay.classList.remove('open');go(i)};
+      toc.appendChild(a);
+    });
+    overlay.classList.add('open');
+  }
+  document.getElementById('contents').onclick=showContents;
   document.getElementById('closeOverlay').onclick=()=>overlay.classList.remove('open');
+  document.getElementById('keys').onclick=()=>{
+    toc.innerHTML='<a href="#"><span class="n">→</span><span>Next slide</span></a><a href="#"><span class="n">←</span><span>Previous slide</span></a><a href="#"><span class="n">SPACE</span><span>Next slide</span></a><a href="#"><span class="n">HOME / END</span><span>First / last slide</span></a><a href="#"><span class="n">C</span><span>Open contents</span></a><a href="#"><span class="n">ESC</span><span>Close overlay</span></a>';
+    overlay.classList.add('open');
+  };
 
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){overlay.classList.remove('open');return}

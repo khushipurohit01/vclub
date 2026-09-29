@@ -7,6 +7,7 @@ export default async (req) => {
   let body;
   try { body = await req.json(); } catch { return json({ error: "Invalid request." }, 400); }
   if (!Array.isArray(body.ids)) return json({ error: "ids must be an array." }, 400);
+  if (body.ids.some(id => typeof id !== "string" || !/^[a-z0-9-]+$/.test(id))) return json({ error: "Invalid assignment id." }, 400);
 
   const manifest = await getManifest();
   const byId = new Map(manifest.assignments.map(a => [a.id, a]));

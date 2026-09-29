@@ -41,11 +41,17 @@ export default async (req) => {
     order
   };
 
-  await store.set(`assignments/${id}.html`, await file.text(), {
+  const html = await file.text();
+  await store.set(`assignments/${id}.html`, html, {
     metadata: { contentType: "text/html; charset=utf-8", title }
   });
   manifest.assignments.push(item);
-  await saveManifest(manifest);
+  try {
+    await saveManifest(manifest);
+  } catch (error) {
+    await store.delete(`assignments/${id}.html`).catch(() => {});
+    throw error;
+  }
   return json({ ok: true, assignment: item });
 };
 

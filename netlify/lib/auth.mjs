@@ -43,16 +43,18 @@ export async function isAdmin(req) {
 }
 
 export function sessionCookie(value) {
-  return `${COOKIE}=${encodeURIComponent(value)}; Max-Age=${MAX_AGE}; Path=/; HttpOnly; Secure; SameSite=Strict`;
+  const secure = process.env.CONTEXT === "dev" ? "" : " Secure;";
+  return `${COOKIE}=${encodeURIComponent(value)}; Max-Age=${MAX_AGE}; Path=/; HttpOnly;${secure} SameSite=Strict`;
 }
 
 export function clearCookie() {
-  return `${COOKIE}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Strict`;
+  const secure = process.env.CONTEXT === "dev" ? "" : " Secure;";
+  return `${COOKIE}=; Max-Age=0; Path=/; HttpOnly;${secure} SameSite=Strict`;
 }
 
 export function json(data, status = 200, extra = {}) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json; charset=utf-8", ...extra }
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...extra }
   });
 }
