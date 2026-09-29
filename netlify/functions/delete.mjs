@@ -1,0 +1,19 @@
+import { isAdmin, json } from "../lib/auth.mjs";
+import { getManifest, saveManifest, store } from "../lib/store.mjs";
+
+export default async (req) => {
+  if (!(await isAdmin(req))) return json({ error: "Unauthorized" }, 401);
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  let body;
+  try { body = await req.json(); } catch { return json({ error: "Invalid request." }, 400); }
+  const manifest = await getManifest();
+  const exists = manifest.assignments.some(a => a.id === body.id);
+  if (!exists) return json({ error: "Assignment not found." }, 404);
+  await store.delete(`assignments/${body.id}.html`);
+  manifest.assignments = manifest.assignments.filter(a => a.id !== body.id);
+  manifest.assignments.forEach((item, index) => { item.order = index; });
+  await saveManifest(manifest);
+  return json({ ok: true });
+};
+
+export const config = { path: "/api/delete" };

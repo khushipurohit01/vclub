@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V-Club Assignment 02 — Colour Switch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEE5D5;
+  --paper:#F7F1E5;
+  --ink:#252321;
+  --muted:#7D756B;
+  --rust:#A84530;
+  --rust-dark:#8F3928;
+  --line:#CFC3B0;
+  --shadow:0 10px 24px rgba(52,42,31,.13),0 2px 4px rgba(52,42,31,.08);
+  --serif:"Playfair Display", Georgia, serif;
+  --sans:"DM Sans", Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body:before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(circle at 85% 5%, rgba(255,255,255,.28), transparent 30%),
+    radial-gradient(circle at 5% 100%, rgba(168,69,48,.05), transparent 28%);
+}
+.deck{position:fixed;inset:0;display:flex;flex-direction:column;z-index:1}
+.stage{position:relative;flex:1;overflow:hidden}
+.slide{
+  position:absolute;inset:0;
+  padding:clamp(20px,3.6vh,42px) clamp(26px,6vw,90px) 24px;
+  overflow:hidden;
+  opacity:0;visibility:hidden;
+  transform:translateY(22px);
+  transition:opacity .4s ease,transform .4s ease,visibility .4s;
+}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.slide-inner{max-width:1160px;width:100%;height:100%;min-height:0;margin:0 auto;display:flex;flex-direction:column;overflow:hidden}
+.slide-number{
+  display:flex;align-items:center;gap:12px;
+  font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--rust);padding-bottom:13px;border-bottom:1px solid var(--line);
+}
+.slide-number span{color:var(--muted);font-weight:600}
+h1,h2,h3{margin:0}
+h1{
+  font-family:var(--sans);font-size:clamp(48px,7vw,86px);line-height:.96;
+  letter-spacing:-.055em;font-weight:700;
+}
+h2{
+  font-size:clamp(34px,5vw,62px);line-height:1;letter-spacing:-.045em;font-weight:700;
+}
+h3{font-size:21px;line-height:1.15}
+.italic{font-family:var(--serif);font-style:italic;color:var(--rust);font-weight:500}
+.lede{font-size:clamp(18px,2vw,24px);line-height:1.45;color:var(--muted);max-width:650px}
+.smallcaps{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--rust)}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:70px;align-items:center;flex:1}
+.hero h1{margin:16px 0 25px}
+.rule{height:2px;background:var(--ink);width:min(470px,100%);margin:0 0 25px}
+.hero-art{position:relative;min-height:360px}
+.frame-mock{
+  position:absolute;background:#171513;box-shadow:var(--shadow);
+  width:58%;aspect-ratio:16/10;right:14%;top:4%;
+  padding:22px;color:#eee;border:1px solid rgba(0,0,0,.2);
+}
+.frame-mock .big{font-family:var(--serif);font-size:clamp(25px,3vw,43px);text-align:center;margin-top:70px}
+.frame-mock:after{content:"";position:absolute;inset:0;background:radial-gradient(circle,transparent 35%,rgba(0,0,0,.65) 100%)}
+.palette-card{
+  position:absolute;right:0;bottom:2%;width:52%;padding:20px;background:#d6d6d2;
+  box-shadow:var(--shadow);transform:rotate(2deg)
+}
+.swatches{display:flex;gap:8px;margin-top:12px}
+.swatch{height:28px;flex:1;border-radius:3px;border:1px solid rgba(0,0,0,.12)}
+.badge{
+  display:inline-block;background:var(--rust);color:#fff;padding:10px 15px;
+  font-size:10px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  box-shadow:var(--shadow)
+}
+.section-head{margin:30px 0 20px}
+.section-head p{margin-top:14px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.card{
+  background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;
+  box-shadow:var(--shadow)
+}
+.card .num{font-size:10px;color:var(--rust);font-weight:700;letter-spacing:.1em;margin-bottom:20px}
+.card h3{margin-bottom:10px}
+.card p{margin:0;color:var(--muted);line-height:1.38;font-size:14px}
+.note{
+  margin-top:18px;border-left:4px solid var(--rust);padding:14px 18px;
+  background:rgba(168,69,48,.055);font-size:15px;color:var(--muted)
+}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.box{
+  background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)
+}
+.box ul{margin:14px 0 0;padding-left:19px}
+.box li{margin:6px 0;color:var(--muted);font-size:14px}
+.callout{
+  margin-top:16px;background:var(--rust);color:#fff;padding:20px 24px;border-radius:15px;
+  font-size:17px;font-weight:600;box-shadow:var(--shadow)
+}
+.reference-card{
+  display:grid;grid-template-columns:.85fr 1.15fr;gap:22px;align-items:center;margin-top:14px
+}
+.reference-visual{
+  aspect-ratio:16/10;background:#ddd;border:1px solid #bbb;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;padding:25px
+}
+.reference-visual .fake-title{font-family:var(--serif);font-size:31px;line-height:1.05;max-width:220px}
+.reference-visual .fake-grid{position:absolute;right:20px;bottom:20px;width:52%;height:48%;display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.reference-visual .fake-grid i{background:#999}
+.reference-visual .fake-grid i:nth-child(2){background:#777}
+.reference-visual .fake-grid i:nth-child(4){background:#aaa}
+.reference-visual .fake-grid i:nth-child(5){background:#666}
+.palette-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.mood{
+  background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px;box-shadow:var(--shadow)
+}
+.mood h3{margin:7px 0 5px}
+.mood p{margin:0 0 14px;color:var(--muted);font-size:14px}
+.mood .swatches .swatch{height:40px}
+.mood .hex{font-size:10px;color:var(--muted);margin-top:9px;display:flex;gap:8px;flex-wrap:wrap}
+.mood .hex span{padding:4px 7px;border:1px solid var(--line);border-radius:5px;background:#fff8}
+.process{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:28px}
+.process-step{position:relative;padding:16px 12px 0;border-top:3px solid var(--rust)}
+.process-step:before{
+  content:"";position:absolute;top:-9px;left:0;width:15px;height:15px;background:var(--rust);
+  box-shadow:0 2px 3px rgba(0,0,0,.12)
+}
+.process-step strong{display:block;font-size:13px;letter-spacing:.04em;margin-bottom:8px}
+.process-step span{font-size:13px;color:var(--muted);line-height:1.4}
+.checklist{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+.check{
+  background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+  box-shadow:0 3px 8px rgba(52,42,31,.06);font-size:15px
+}
+.check:before{content:"✓";color:var(--rust);font-weight:700;margin-right:10px}
+.submission{margin-top:16px;border-top:1px solid var(--line)}
+.submit-row{display:grid;grid-template-columns:45px 170px 1fr;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.submit-row .n{color:var(--rust);font-weight:700;font-size:12px}
+.submit-row strong{font-size:16px}
+.submit-row span{color:var(--muted);font-size:15px}
+.deadline{
+  margin-top:16px;padding:19px 22px;border:1px solid var(--rust);border-radius:14px;
+  background:rgba(168,69,48,.06);display:flex;justify-content:space-between;gap:20px;align-items:center
+}
+.quote{
+  font-family:var(--serif);font-style:italic;font-size:clamp(26px,3.5vw,44px);line-height:1.15;
+  max-width:780px;margin-top:35px
+}
+.footer-mark{margin-top:auto;text-align:right;color:#8b8174;font-size:9px;letter-spacing:.08em}
+
+/* bottom transport */
+.transport{
+  position:relative;z-index:10;background:rgba(247,241,229,.92);
+  backdrop-filter:blur(15px);border-top:1px solid var(--line)
+}
+.ruler{padding:9px clamp(18px,5vw,75px) 0}
+.chapters{display:flex;gap:3px;margin-bottom:4px}
+.chapter{
+  flex:1;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9b9184;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:3px;border-left:1px solid var(--line)
+}
+.chapter.on{color:var(--rust)}
+.track{display:flex;gap:2px;height:15px;align-items:flex-end;cursor:pointer}
+.tick{flex:1;height:3px;background:var(--line);border-radius:2px;transition:.2s}
+.tick.done{background:#d29b8d}.tick.on{height:9px;background:var(--rust)}
+.bar{display:flex;align-items:center;gap:14px;padding:0 clamp(18px,5vw,75px) 10px}
+.brand{font-family:var(--serif);font-weight:600;font-size:14px;white-space:nowrap}
+.doc{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-left{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.mark{width:17px;height:17px;background:var(--rust);border-radius:5px;display:inline-block}
+.center{display:flex;align-items:center;gap:6px}
+button{
+  border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;
+  padding:7px 10px;font:600 10px var(--sans);letter-spacing:.06em;cursor:pointer
+}
+button:hover{border-color:var(--rust);color:var(--rust)}
+.counter{min-width:72px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em}
+.right{display:flex;gap:6px;justify-content:flex-end;flex:1}
+.overlay{
+  position:fixed;inset:0;z-index:50;background:rgba(238,229,213,.88);backdrop-filter:blur(14px);
+  display:none;padding:50px 7vw;overflow:auto
+}
+.overlay.open{display:block}
+.overlay-inner{max-width:1050px;margin:auto}
+.overlay-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:15px}
+.toc{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:25px}
+.toc a{display:flex;gap:15px;text-decoration:none;color:var(--ink);padding:13px;border-radius:9px}
+.toc a:hover{background:var(--paper);color:var(--rust)}
+.toc .n{font-size:10px;color:var(--rust);font-weight:700}
+.hint{
+  position:fixed;left:50%;bottom:95px;transform:translateX(-50%);z-index:20;
+  background:rgba(247,241,229,.95);border:1px solid var(--line);border-radius:999px;
+  padding:9px 15px;font-size:10px;letter-spacing:.08em;color:var(--muted);box-shadow:var(--shadow);
+  transition:opacity .4s
+}
+.hint.hide{opacity:0;pointer-events:none}
+@media(max-width:800px){
+  .hero,.reference-card,.two-col{grid-template-columns:1fr}
+  .hero-art{min-height:260px}
+  .cards,.palette-grid{grid-template-columns:1fr}
+  .process{grid-template-columns:1fr;gap:10px}
+  .process-step{border-top:0;border-left:3px solid var(--rust);padding:10px 15px}
+  .process-step:before{left:-9px;top:8px}
+  .right .optional{display:none}
+  .doc,.brand{display:none}
+  .submit-row{grid-template-columns:40px 1fr}
+  .submit-row span{grid-column:2}
+}
+
+@media (max-height:720px) and (min-width:801px){
+  .slide{padding-top:18px;padding-bottom:18px}
+  h2{font-size:clamp(30px,4.5vw,52px)}
+  .section-head{margin:22px 0 14px}
+  .lede{font-size:17px}
+  .card{padding:15px}
+  .card .num{margin-bottom:13px}
+  .card p,.box li{font-size:13px}
+  .callout{padding:14px 18px;font-size:15px}
+  .mood{padding:11px}
+  .mood .swatches .swatch{height:34px}
+}
+
+</style>
+</head>
+
+<body>
+<main class="deck">
+<div class="stage" id="stage">
+
+<section class="slide active" data-title="Colour Switch" data-ch="START">
+<div class="slide-inner">
+  <div class="hero">
+    <div>
+      <div class="smallcaps">V-CLUB / ASSIGNMENT 02</div>
+      <h1>COLOUR<br><span class="italic">SWITCH.</span></h1>
+      <div class="rule"></div>
+      <p class="lede">Take one creator frame. Rebuild it. Then use colour to give it three completely different moods.</p>
+      <span class="badge">PHOTOSHOP / 1 FRAME / 3 MOODS</span>
+    </div>
+    <div class="hero-art">
+      <div class="frame-mock"><div class="big">THE<br>FRAME</div></div>
+      <div class="palette-card">
+        <div class="smallcaps">Same design. Different feeling.</div>
+        <div class="swatches">
+          <i class="swatch" style="background:#172B4D"></i>
+          <i class="swatch" style="background:#D6A84F"></i>
+          <i class="swatch" style="background:#F1E8D5"></i>
+          <i class="swatch" style="background:#A84530"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="The Idea" data-ch="START">
+<div class="slide-inner">
+  <div class="slide-number">02 <span>THE IDEA</span></div>
+  <div class="section-head">
+    <h2>THE SAME FRAME<br><span class="italic">CAN FEEL DIFFERENT.</span></h2>
+    <p class="lede">Colour can make a design feel premium, energetic, calm, playful or modern — without changing the core layout.</p>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="num">01</div><h3>REBUILD</h3><p>Match the original frame first. Get the structure right before experimenting.</p></div>
+    <div class="card"><div class="num">02</div><h3>CHANGE THE MOOD</h3><p>Use a new colour palette to create a clear emotional direction.</p></div>
+    <div class="card"><div class="num">03</div><h3>MAKE A DECISION</h3><p>Don't pick colours because they look pretty. Pick them because they communicate something.</p></div>
+  </div>
+  <div class="note"><strong>Think like a designer:</strong> “What should the viewer feel?” comes before “Which colours look good?”</div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Your Mission" data-ch="START">
+<div class="slide-inner">
+  <div class="slide-number">03 <span>YOUR MISSION</span></div>
+  <div class="section-head">
+    <h2>YOUR JOB IS SIMPLE.<br><span class="italic">REBUILD → SWITCH.</span></h2>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="num">01 / PICK</div><h3>Choose ONE frame</h3><p>Pick a creator frame with clear text, a background, graphic elements and roughly 3–5 main colour areas.</p></div>
+    <div class="card"><div class="num">02 / RECREATE</div><h3>Match the original</h3><p>Rebuild the layout, typography, spacing, images and original colours as closely as possible.</p></div>
+    <div class="card"><div class="num">03 / SWITCH</div><h3>Create 3 moods</h3><p>Keep the design mostly the same. Change the colour direction to create three different moods.</p></div>
+  </div>
+  <div class="callout">ONE DESIGN. THREE FEELINGS. Your colour choices should have a reason.</div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Pick Your Frame" data-ch="BUILD">
+<div class="slide-inner">
+  <div class="slide-number">04 <span>PICK YOUR FRAME</span></div>
+  <div class="section-head">
+    <h2>START WITH A<br><span class="italic">GOOD REFERENCE.</span></h2>
+    <p class="lede">Choose a frame from a creator whose design you like.</p>
+  </div>
+  <div class="reference-card">
+    <div class="reference-visual">
+      <div class="smallcaps">Example frame</div>
+      <div class="fake-title">A strong frame has a clear visual hierarchy.</div>
+      <div class="fake-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="box">
+      <h3>Creators you can explore</h3>
+      <ul>
+        <li>GrowthX</li><li>Cleo Abram</li><li>AevyTV</li><li>Ali Abdaal</li>
+        <li>Dhruv Rathee</li><li>Varun Mayya</li><li>Ishan Sharma</li><li>Think School</li>
+      </ul>
+      <p style="margin-top:18px;color:var(--muted)">You can choose another creator too.</p>
+    </div>
+  </div>
+  <div class="note">Don't choose something extremely complicated. We want to see your colour decisions, not your ability to spend six hours rebuilding a crazy composition.</div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Recreate" data-ch="BUILD">
+<div class="slide-inner">
+  <div class="slide-number">05 <span>RECREATE</span></div>
+  <div class="section-head">
+    <h2>FIRST, <span class="italic">MATCH IT.</span></h2>
+    <p class="lede">Before you experiment with colour, make sure you understand and can reproduce the original design.</p>
+  </div>
+  <div class="two-col">
+    <div class="box">
+      <div class="smallcaps">Match these</div>
+      <ul>
+        <li>Layout & composition</li>
+        <li>Typography</li>
+        <li>Spacing & alignment</li>
+        <li>Images & shapes</li>
+        <li>Original colours</li>
+        <li>Overall visual hierarchy</li>
+      </ul>
+    </div>
+    <div class="box">
+      <div class="smallcaps">Canvas</div>
+      <h2 style="margin-top:12px">1920 × 1080</h2>
+      <p style="color:var(--muted);margin-top:12px">Your recreated frame should look as close to the reference as possible before you touch the colour direction.</p>
+    </div>
+  </div>
+  <div class="callout">ACCURATE FIRST. CREATIVE SECOND.</div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Choose Your Moods" data-ch="COLOUR">
+<div class="slide-inner">
+  <div class="slide-number">06 <span>CHOOSE YOUR MOODS</span></div>
+  <div class="section-head">
+    <h2>NOW CHANGE<br><span class="italic">THE FEELING.</span></h2>
+    <p class="lede">Choose any three moods below — or create your own mood if you can explain the choice.</p>
+  </div>
+  <div class="palette-grid">
+    <div class="mood">
+      <div class="smallcaps">ENERGETIC</div><h3>Bold & high contrast</h3><p>Bright, confident, attention-grabbing.</p>
+      <div class="swatches"><i class="swatch" style="background:#F05A28"></i><i class="swatch" style="background:#1769AA"></i><i class="swatch" style="background:#FFF4DC"></i><i class="swatch" style="background:#202020"></i></div>
+    </div>
+    <div class="mood">
+      <div class="smallcaps">PREMIUM</div><h3>Elegant & sophisticated</h3><p>Controlled, refined, expensive.</p>
+      <div class="swatches"><i class="swatch" style="background:#10243D"></i><i class="swatch" style="background:#C9A24D"></i><i class="swatch" style="background:#F2E8D5"></i><i class="swatch" style="background:#242424"></i></div>
+    </div>
+    <div class="mood">
+      <div class="smallcaps">CALM</div><h3>Soft & peaceful</h3><p>Quiet, balanced, easy on the eye.</p>
+      <div class="swatches"><i class="swatch" style="background:#A9B9A4"></i><i class="swatch" style="background:#E8DCC8"></i><i class="swatch" style="background:#A9C5D1"></i><i class="swatch" style="background:#4D5A52"></i></div>
+    </div>
+    <div class="mood">
+      <div class="smallcaps">TECH / MODERN</div><h3>Futuristic & digital</h3><p>Clean, sharp, contemporary.</p>
+      <div class="swatches"><i class="swatch" style="background:#24143D"></i><i class="swatch" style="background:#31D4D0"></i><i class="swatch" style="background:#F4F4F4"></i><i class="swatch" style="background:#171717"></i></div>
+    </div>
+    <div class="mood">
+      <div class="smallcaps">PLAYFUL</div><h3>Fun & expressive</h3><p>Friendly, colourful, creative.</p>
+      <div class="swatches"><i class="swatch" style="background:#F35C9A"></i><i class="swatch" style="background:#F6CF43"></i><i class="swatch" style="background:#42C7B6"></i><i class="swatch" style="background:#4D3B67"></i></div>
+    </div>
+    <div class="mood">
+      <div class="smallcaps">YOUR MOOD</div><h3>Make your own</h3><p>Choose a feeling. Build a palette around it.</p>
+      <div class="swatches"><i class="swatch" style="background:#B8A89A"></i><i class="swatch" style="background:#D4B27A"></i><i class="swatch" style="background:#7A8C89"></i><i class="swatch" style="background:#363636"></i></div>
+    </div>
+  </div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Build Your Palette" data-ch="COLOUR">
+<div class="slide-inner">
+  <div class="slide-number">07 <span>BUILD YOUR PALETTE</span></div>
+  <div class="section-head">
+    <h2>4–6 COLOURS.<br><span class="italic">ONE CLEAR MOOD.</span></h2>
+    <p class="lede">You can use Coolors, Adobe Color, Realtime Colors, or build your own palette.</p>
+  </div>
+  <div class="process">
+    <div class="process-step"><strong>01 / MOOD</strong><span>Decide what the viewer should feel.</span></div>
+    <div class="process-step"><strong>02 / BASE</strong><span>Choose the main background / dominant colour.</span></div>
+    <div class="process-step"><strong>03 / CONTRAST</strong><span>Choose colours that make important elements stand out.</span></div>
+    <div class="process-step"><strong>04 / ACCENT</strong><span>Add one or two colours for emphasis.</span></div>
+    <div class="process-step"><strong>05 / TEST</strong><span>Check readability and balance.</span></div>
+  </div>
+  <div class="two-col" style="margin-top:45px">
+    <div class="box">
+      <div class="smallcaps">Example / Premium</div>
+      <div class="swatches" style="margin-top:18px"><i class="swatch" style="background:#0B1F3A"></i><i class="swatch" style="background:#D4AF37"></i><i class="swatch" style="background:#F5F0E6"></i><i class="swatch" style="background:#222222"></i></div>
+      <p style="margin-top:12px;color:var(--muted);font-size:13px">#0B1F3A · #D4AF37 · #F5F0E6 · #222222</p>
+    </div>
+    <div class="box">
+      <div class="smallcaps">Remember</div>
+      <h3 style="margin-top:12px">Pretty ≠ purposeful.</h3>
+      <p style="color:var(--muted);margin-top:8px">Your palette should support the message and hierarchy of the frame.</p>
+    </div>
+  </div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Apply & Compare" data-ch="REFINE">
+<div class="slide-inner">
+  <div class="slide-number">08 <span>APPLY & COMPARE</span></div>
+  <div class="section-head">
+    <h2>SAME DESIGN.<br><span class="italic">THREE FEELINGS.</span></h2>
+  </div>
+  <div class="two-col">
+    <div class="box">
+      <div class="smallcaps">For every version</div>
+      <ul>
+        <li>Keep the layout mostly the same.</li>
+        <li>Keep the typography mostly the same.</li>
+        <li>Change the colour direction.</li>
+        <li>Make the mood obvious.</li>
+        <li>Don't add random elements.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <div class="smallcaps">Ask yourself</div>
+      <ul>
+        <li>What should the viewer feel?</li>
+        <li>Does the palette support that feeling?</li>
+        <li>Can I still read everything?</li>
+        <li>Is one colour taking over?</li>
+        <li>Does the important information stand out?</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">If the mood isn't obvious without you explaining it, your colour choices probably need more work.</div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Final Check" data-ch="REFINE">
+<div class="slide-inner">
+  <div class="slide-number">09 <span>FINAL CHECK</span></div>
+  <div class="section-head">
+    <h2>COMPARE → <span class="italic">FIX → EXPORT</span></h2>
+    <p class="lede">Before you submit, compare your work side-by-side with the original reference.</p>
+  </div>
+  <div class="checklist">
+    <div class="check">Original frame was recreated accurately</div>
+    <div class="check">All 3 moods are clearly different</div>
+    <div class="check">Text is readable in every version</div>
+    <div class="check">Colour choices feel intentional</div>
+    <div class="check">The design still has a clear hierarchy</div>
+    <div class="check">No unnecessary elements were added</div>
+    <div class="check">Palettes have 4–6 colours</div>
+    <div class="check">HEX codes are included</div>
+  </div>
+  <div class="note"><strong>Don't polish a tiny detail while the whole frame is still off.</strong> Fix the big visual problems first.</div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Submission" data-ch="SUBMIT">
+<div class="slide-inner">
+  <div class="slide-number">10 <span>SUBMISSION</span></div>
+  <div class="section-head">
+    <h2>YOUR FINAL <span class="italic">DROP.</span></h2>
+  </div>
+  <div class="submission">
+    <div class="submit-row"><div class="n">01</div><strong>ORIGINAL REFERENCE</strong><span>Screenshot of the creator frame you selected</span></div>
+    <div class="submit-row"><div class="n">02</div><strong>RECREATION</strong><span>Your frame recreated with the original colours</span></div>
+    <div class="submit-row"><div class="n">03</div><strong>MOOD 01</strong><span>First colour version</span></div>
+    <div class="submit-row"><div class="n">04</div><strong>MOOD 02</strong><span>Second colour version</span></div>
+    <div class="submit-row"><div class="n">05</div><strong>MOOD 03</strong><span>Third colour version</span></div>
+    <div class="submit-row"><div class="n">06</div><strong>PALETTE SHEET</strong><span>All palettes + colour swatches + HEX codes</span></div>
+    <div class="submit-row"><div class="n">07</div><strong>PSD</strong><span>Properly organised Photoshop file</span></div>
+  </div>
+  <div class="callout">Keep your file clean. Keep your layers organised. Make it easy for someone else to understand your work.</div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Reflection" data-ch="SUBMIT">
+<div class="slide-inner">
+  <div class="slide-number">11 <span>REFLECTION</span></div>
+  <div class="section-head">
+    <h2>KEEP IT <span class="italic">SHORT.</span></h2>
+    <p class="lede">Answer these after finishing the assignment.</p>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="num">01</div><h3>Which 3 moods did you choose?</h3><p>Just name them.</p></div>
+    <div class="card"><div class="num">02</div><h3>Why did you choose those colours?</h3><p>Tell us what feeling or direction you were trying to create.</p></div>
+    <div class="card"><div class="num">03</div><h3>Which version communicates its mood best?</h3><p>Explain in one or two sentences.</p></div>
+  </div>
+  <div class="deadline"><span><strong>TIME LIMIT</strong><br><span style="color:var(--muted)">Try to finish within 3 hours.</span></span><span class="smallcaps">V-CLUB / ASSIGNMENT 02</span></div>
+  <div class="footer-mark">VClub.assignment02.</div>
+</div>
+</section>
+
+<section class="slide" data-title="Final Thought" data-ch="END">
+<div class="slide-inner">
+  <div class="hero" style="grid-template-columns:1fr .7fr">
+    <div>
+      <div class="smallcaps">V-CLUB / 02</div>
+      <div class="quote">“Don't ask which colours look pretty. Ask what the viewer should feel.”</div>
+      <p class="lede" style="margin-top:25px">A strong editor doesn't just change the look. They understand what the look is communicating.</p>
+    </div>
+    <div style="display:flex;justify-content:center;align-items:center">
+      <div style="width:230px;height:230px;border-radius:50%;background:var(--rust);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;color:#fff;text-align:center;font-weight:700;letter-spacing:.08em;font-size:12px">ONE DESIGN<br>THREE MOODS</div>
+    </div>
+  </div>
+  <div class="footer-mark">GOOD LUCK. / V-CLUB</div>
+</div>
+</section>
+
+</div>
+
+<footer class="transport">
+  <div class="ruler">
+    <div class="chapters" id="chapters"></div>
+    <div class="track" id="track"></div>
+  </div>
+  <div class="bar">
+    <div class="bar-left">
+      <span class="mark"></span><span class="brand">V-Club</span>
+      <span style="color:#a59b8d">/</span><span class="doc">Assignment 02 · Colour Switch</span>
+    </div>
+    <div class="center">
+      <button id="prev">←</button>
+      <span class="counter" id="counter">01 / 12</span>
+      <button id="next">→</button>
+    </div>
+    <div class="right">
+      <button class="optional" id="contents">Contents</button>
+      <button class="optional" id="keys">Keys</button>
+    </div>
+  </div>
+</footer>
+</main>
+
+<div class="hint" id="hint">↓ / → to advance · scroll to change slides</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-inner">
+    <div class="overlay-head">
+      <h2 style="font-size:34px">Contents</h2>
+      <button id="closeOverlay">Close · Esc</button>
+    </div>
+    <div class="toc" id="toc"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const slides=[...document.querySelectorAll('.slide')];
+  const track=document.getElementById('track');
+  const chaptersEl=document.getElementById('chapters');
+  const counter=document.getElementById('counter');
+  const hint=document.getElementById('hint');
+  const toc=document.getElementById('toc');
+  const overlay=document.getElementById('overlay');
+  let index=0;
+
+  const groups=[];
+  slides.forEach((s,i)=>{
+    const name=s.dataset.ch||'Section';
+    let g=groups[groups.length-1];
+    if(!g || g.name!==name){g={name,start:i,end:i};groups.push(g)}
+    else g.end=i;
+  });
+
+  groups.forEach(g=>{
+    const d=document.createElement('div');
+    d.className='chapter';
+    d.style.flexGrow=(g.end-g.start+1);
+    d.textContent=g.name;
+    chaptersEl.appendChild(d);
+  });
+
+  slides.forEach((s,i)=>{
+    const t=document.createElement('div');
+    t.className='tick';
+    t.title=(i+1)+' · '+s.dataset.title;
+    t.onclick=()=>go(i);
+    track.appendChild(t);
+    const a=document.createElement('a');
+    a.href='#';
+    a.innerHTML='<span class="n">'+String(i+1).padStart(2,'0')+'</span><span>'+s.dataset.title+'</span>';
+    a.onclick=(e)=>{e.preventDefault();overlay.classList.remove('open');go(i)};
+    toc.appendChild(a);
+  });
+
+  function go(n){
+    index=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,i)=>s.classList.toggle('active',i===index));
+    [...track.children].forEach((t,i)=>t.classList.toggle('on',i===index),);
+    [...track.children].forEach((t,i)=>t.classList.toggle('done',i<index));
+    [...chaptersEl.children].forEach((c,i)=>{
+      const g=groups[i]; c.classList.toggle('on',index>=g.start && index<=g.end);
+    });
+    counter.textContent=String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+    slides[index].scrollTop=0;
+    [...toc.children].forEach((a,i)=>a.style.background=i===index?'rgba(168,69,48,.08)':'');
+  }
+  function next(){go(index+1)}
+  function prev(){go(index-1)}
+
+  document.getElementById('next').onclick=next;
+  document.getElementById('prev').onclick=prev;
+  document.getElementById('contents').onclick=()=>overlay.classList.add('open');
+  document.getElementById('closeOverlay').onclick=()=>overlay.classList.remove('open');
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){overlay.classList.remove('open');return}
+    if(overlay.classList.contains('open')) return;
+    if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();next()}
+    if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();prev()}
+    if(e.key==='Home'){e.preventDefault();go(0)}
+    if(e.key==='End'){e.preventDefault();go(slides.length-1)}
+    if(e.key.toLowerCase()==='c') overlay.classList.add('open');
+    if(e.key==='?') document.getElementById('keys').click();
+  });
+
+  let wheelLock=false;
+  document.addEventListener('wheel',e=>{
+    if(overlay.classList.contains('open')) return;
+    if(wheelLock) return;
+    wheelLock=true;
+    e.deltaY>0?next():prev();
+    setTimeout(()=>wheelLock=false,550);
+  },{passive:true});
+
+  let touchStart=0;
+  document.addEventListener('touchstart',e=>touchStart=e.touches[0].clientY,{passive:true});
+  document.addEventListener('touchend',e=>{
+    const d=touchStart-e.changedTouches[0].clientY;
+    if(Math.abs(d)>45){d>0?next():prev()}
+  },{passive:true});
+
+  setTimeout(()=>hint.classList.add('hide'),4200);
+  go(0);
+})();
+</script>
+</body>
+</html>
